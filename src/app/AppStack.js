@@ -2,14 +2,16 @@ import { createBottomTabNavigator } from 'react-navigation-tabs';
 import AuthScreen from '../screens/AuthScreen';
 import { Icon } from 'native-base';
 import { Platform } from 'react-native';
-import { createAppContainer } from 'react-navigation';
+import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import React from 'react';
+import CheckFirstUseScreen from '../screens/CheckFirstUseScreen';
+import HomeScreen from '../screens/HomeScreen';
 
 const RootTabNavigator = createBottomTabNavigator(
   {
     Home: {
-      screen: AuthScreen,
+      screen: HomeScreen,
       navigationOptions: ({}) => ({
         tabBarIcon: ({ focused, tintColor }) => (
           <Icon type="FontAwesome5" name="home" style={{ color: focused ? tintColor : '#BDBDBD' }} />
@@ -46,11 +48,11 @@ const RootTabNavigator = createBottomTabNavigator(
   }
 );
 
-const AppStack = createStackNavigator(
-  {
-    RootTabNavigator,
-  },
-  { initialRouteName: 'RootTabNavigator' }
+export default createAppContainer(
+  createSwitchNavigator(
+    { CheckFirstUseScreen, AuthScreen, RootTabNavigator },
+    {
+      initialRouteName: 'CheckFirstUseScreen',
+    }
+  )
 );
-
-export default createAppContainer(AppStack);

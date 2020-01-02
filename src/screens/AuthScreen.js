@@ -3,8 +3,13 @@ import { View, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { CLIENT_ID } from '../constant';
 import queryString from 'query-string';
+import { useDispatch, connect } from 'react-redux';
+import { bindActionCreators } from '@reduxjs/toolkit';
+import { auth, getUser } from '../modules/auth';
+import NavigationService from '../utils/NavigationService';
 
-const AuthScreen = () => {
+const AuthScreen = ({ auth, getUser, navigation }) => {
+  const dispatch = useDispatch();
   const [stateRandom, setStateRandom] = useState(Math.random().toString());
   const [urlNav, setUrlNav] = useState('');
   const loginUrl = useMemo(
@@ -22,25 +27,21 @@ const AuthScreen = () => {
 
   const handleOpenURL = useCallback(
     async ({ url }) => {
-      if (url && url.substring(0, 11) === 'repogithub://') {
+      if (url && url.includes('repogithub://')) {
         const [, queryStringFromUrl] = url.match(/\?(.*)/);
         const { state, code } = queryString.parse(queryStringFromUrl);
-        //   const { auth, getUser, navigation, locale } = this.props;
-
-        console.log('url', url);
 
         if (stateRandom === state) {
-          //   this.setState({
-          //     code,
-          //     showLoader: true,
-          //     loaderText: t('Preparing GitPoint...', locale),
-          //   });
-
-          setStateRandom(Math.random().toString());
+          auth(code, state).then(() => {
+            getUser().then(() => {
+              NavigationService.navigate('Home');
+            });
+          });
         }
       }
     },
-    [stateRandom]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [auth, getUser, stateRandom]
   );
 
   return (
@@ -68,4 +69,19 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AuthScreen;
+const mapStateToProps = state => ({
+  isLoggingIn: state.auth.isLoggingIn,
+  isAuthenticated: state.auth.isAuthenticated,
+  hasInitialUser: state.auth.hasInitialUser,
+});
+
+const mapDispatchToProps = dispatch =>
+  bindActionCreators(
+    {
+      auth,
+      getUser,
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(AuthScreen);
